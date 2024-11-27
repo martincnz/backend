@@ -6,6 +6,7 @@ import com.martin.backend.adapters.`in`.HealthCheckController
 import com.martin.backend.adapters.`in`.WebServerVerticle
 import com.martin.backend.adapters.out.BcraDebtorsRepositoryImpl
 import com.martin.backend.adapters.out.BcraMainVariablesRepositoryImpl
+import com.martin.backend.adapters.out.GlobalDataRepositoryImpl
 import com.martin.backend.application.ErrorHandler
 import com.martin.backend.domain.DebtorDetailsService
 import com.martin.backend.domain.FinancialVariablesService
@@ -13,7 +14,10 @@ import com.martin.backend.ports.`in`.GetDebtorDetailsUseCase
 import com.martin.backend.ports.`in`.GetFinancialVariablesUseCase
 import com.martin.backend.ports.out.BcraDebtorsRepository
 import com.martin.backend.ports.out.BcraMainVariablesRepository
+import com.martin.backend.ports.out.GlobalDataRepository
 import io.vertx.core.Vertx
+import io.vertx.ext.web.client.CachingWebClient
+import io.vertx.ext.web.client.CachingWebClientOptions
 import io.vertx.ext.web.client.WebClient
 import io.vertx.ext.web.client.WebClientOptions
 import org.koin.dsl.module
@@ -25,7 +29,8 @@ object ModuleDefinitions {
         createAppModule(),
         createControllersModule(),
         createUseCasesModule(),
-        createRepositoriesModule(vertx)
+        createWebClientModule(vertx),
+        createRepositoriesModule()
     )
 
     private fun createConfigModule() = module {
@@ -68,22 +73,30 @@ object ModuleDefinitions {
         }
         single<GetDebtorDetailsUseCase> {
             DebtorDetailsService(
-                bcraRepository = get()
+                bcraRepository = get(),
+                globalDataRepository = get()
             )
         }
     }
 
-    private fun createRepositoriesModule(vertx: Vertx) = module {
-        single {
-            WebClient.create(
-                vertx,
-                WebClientOptions()
-                    .setSsl(true)
-                    .setTrustAll(true)
-                    .setVerifyHost(false)
-            )
-        }
+    private fun createWebClientModule(vertx: Vertx) = module {
+        val cachingOptions = CachingWebClientOptions()
+            .removeCachedStatusCode(301)
+            .setEnableVaryCaching(true)
 
+        val options = WebClientOptions()
+            .setSsl(true)
+            .setTrustAll(true)
+            .setVerifyHost(false)
+
+        val client = WebClient.create(vertx, options)
+
+        single<WebClient> {
+            CachingWebClient.create(client, cachingOptions)
+        }
+    }
+
+    private fun createRepositoriesModule() = module {
         single<BcraMainVariablesRepository> {
             BcraMainVariablesRepositoryImpl(
                 client = get()
@@ -92,6 +105,12 @@ object ModuleDefinitions {
 
         single<BcraDebtorsRepository> {
             BcraDebtorsRepositoryImpl(
+                client = get()
+            )
+        }
+
+        single<GlobalDataRepository> {
+            GlobalDataRepositoryImpl(
                 client = get()
             )
         }

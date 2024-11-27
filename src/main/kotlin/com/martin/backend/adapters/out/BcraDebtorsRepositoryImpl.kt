@@ -29,6 +29,7 @@ class BcraDebtorsRepositoryImpl(
             200 -> RepositoryResult.Success(
                 data = JsonMapper.readValue<BcraDebtResponseBody>(response.bodyAsString()).toDebtInfo()
             )
+
             else -> RepositoryResult.Failure(error = response.bodyAsString())
         } as CurrentDebtResult
     }
@@ -38,24 +39,20 @@ class BcraDebtorsRepositoryImpl(
             DebtInfo(
                 identification = it.identificacion,
                 name = it.denominacion,
-                periods = it.periodos?.map {
-                    DebtInfo.Period(
-                        period = it.periodo,
-                        entities = it.entidades?.map {
-                            DebtInfo.DebtEntity(
-                                entity = it.entidad,
-                                debtorClassification = DebtorClassification.fromCode(it.situacion),
-                                situationDate = it.fechaSituacion,
-                                amount = it.monto,
-                                daysOverdue = it.diasAtrasoPago,
-                                hasRefinancing = it.refinanciaciones,
-                                mandatoryRecategorization = it.recategorizacionOblig,
-                                hasLegalSituation = it.situacionJuridica,
-                                hasTechnicalIrregularity = it.irrecDisposicionTecnica,
-                                underReview = it.enRevision,
-                                hasLegalProceedings = it.procesoJud
-                            )
-                        }
+                period = it.periodos?.first()?.periodo,
+                entities = it.periodos?.first()?.entidades?.map {
+                    DebtInfo.DebtEntity(
+                        entity = it.entidad,
+                        debtorClassification = DebtorClassification.fromCode(it.situacion),
+                        situationDate = it.fechaSituacion,
+                        amount = it.monto?.times(1000),
+                        daysOverdue = it.diasAtrasoPago,
+                        hasRefinancing = it.refinanciaciones,
+                        mandatoryRecategorization = it.recategorizacionOblig,
+                        hasLegalSituation = it.situacionJuridica,
+                        hasTechnicalIrregularity = it.irrecDisposicionTecnica,
+                        underReview = it.enRevision,
+                        hasLegalProceedings = it.procesoJud
                     )
                 }
             )
@@ -69,8 +66,10 @@ class BcraDebtorsRepositoryImpl(
 
         return when (response.statusCode()) {
             200 -> RepositoryResult.Success(
-                data = JsonMapper.readValue<BcraHistoricalDebtResponseBody>(response.bodyAsString()).toHistoricalDebtInfo()
+                data = JsonMapper.readValue<BcraHistoricalDebtResponseBody>(response.bodyAsString())
+                    .toHistoricalDebtInfo()
             )
+
             else -> RepositoryResult.Failure(error = response.bodyAsString())
         } as HistoricalDebtResult
     }
@@ -84,7 +83,7 @@ class BcraDebtorsRepositoryImpl(
                         HistoricalDebtInfo.Entity(
                             entity = it.entidad,
                             situation = DebtorClassification.fromCode(it.situacion),
-                            amount = it.monto,
+                            amount = it.monto?.times(1000),
                             underReview = it.enRevision,
                             hasLegalProceedings = it.procesoJud
                         )
@@ -100,8 +99,10 @@ class BcraDebtorsRepositoryImpl(
 
         return when (response.statusCode()) {
             200 -> RepositoryResult.Success(
-                data = JsonMapper.readValue<BcraRejectedChecksResponseBody>(response.bodyAsString()).toRejectedChecksInfo()
+                data = JsonMapper.readValue<BcraRejectedChecksResponseBody>(response.bodyAsString())
+                    .toRejectedChecksInfo()
             )
+
             else -> RepositoryResult.Failure(error = response.bodyAsString())
         } as RejectedChecksResult
     }
@@ -121,7 +122,7 @@ class BcraDebtorsRepositoryImpl(
                                     RejectedChecksInfo.Detail(
                                         checkNumber = it.nroCheque,
                                         rejectionDate = it.fechaRechazo,
-                                        amount = it.monto,
+                                        amount = it.monto.times(1000),
                                         paymentDate = it.fechaPago,
                                         finePaymentDate = it.fechaPagoMulta,
                                         fineStatus = it.estadoMulta,

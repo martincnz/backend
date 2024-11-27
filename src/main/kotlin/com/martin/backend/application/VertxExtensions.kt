@@ -13,18 +13,18 @@ object VertxExtensions {
         .putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
         .end(JsonMapper.writeValue(body))
 
-    data class ResultContainer3<A, B, C>(
+    data class Triad<A, B, C>(
         val first: A,
         val second: B,
         val third: C
     )
-    data class ResultContainer4<A, B, C, D>(
+    data class Tetrad<A, B, C, D>(
         val first: A,
         val second: B,
         val third: C,
         val fourth: D
     )
-    data class ResultContainer5<A, B, C, D, E>(
+    data class Pentad<A, B, C, D, E>(
         val first: A,
         val second: B,
         val third: C,
@@ -45,11 +45,11 @@ object VertxExtensions {
         task1: suspend () -> A,
         task2: suspend () -> B,
         task3: suspend () -> C
-    ): ResultContainer3<A, B, C> = coroutineScope {
+    ): Triad<A, B, C> = coroutineScope {
         val deferred1 = async { task1() }
         val deferred2 = async { task2() }
         val deferred3 = async { task3() }
-        ResultContainer3(first = deferred1.await(), second = deferred2.await(), third = deferred3.await())
+        Triad(first = deferred1.await(), second = deferred2.await(), third = deferred3.await())
     }
 
     suspend fun <A, B, C, D> parallelFetch(
@@ -57,12 +57,12 @@ object VertxExtensions {
         task2: suspend () -> B,
         task3: suspend () -> C,
         task4: suspend () -> D
-    ): ResultContainer4<A, B, C, D> = coroutineScope {
+    ): Tetrad<A, B, C, D> = coroutineScope {
         val deferred1 = async { task1() }
         val deferred2 = async { task2() }
         val deferred3 = async { task3() }
         val deferred4 = async { task4() }
-        ResultContainer4(first = deferred1.await(), second = deferred2.await(), third = deferred3.await(), fourth = deferred4.await())
+        Tetrad(first = deferred1.await(), second = deferred2.await(), third = deferred3.await(), fourth = deferred4.await())
     }
 
     suspend fun <A, B, C, D, E> parallelFetch(
@@ -71,13 +71,13 @@ object VertxExtensions {
         task3: suspend () -> C,
         task4: suspend () -> D,
         task5: suspend () -> E
-    ): ResultContainer5<A, B, C, D, E> = coroutineScope {
+    ): Pentad<A, B, C, D, E> = coroutineScope {
         val deferred1 = async { task1() }
         val deferred2 = async { task2() }
         val deferred3 = async { task3() }
         val deferred4 = async { task4() }
         val deferred5 = async { task5() }
-        ResultContainer5(
+        Pentad(
             first = deferred1.await(),
             second = deferred2.await(),
             third = deferred3.await(),

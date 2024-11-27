@@ -4,6 +4,7 @@ import com.martin.backend.domain.dto.DebtorClassification
 import java.time.LocalDate
 
 data class DebtResponseBody(
+    val period: LocalDate?,
     val entities: List<DebtEntity>?
 ) {
     data class DebtEntity(

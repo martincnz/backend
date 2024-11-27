@@ -6,6 +6,7 @@ import io.vertx.ext.web.Route
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
+import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.coAwait
 import io.vertx.kotlin.coroutines.dispatcher
@@ -24,6 +25,7 @@ class WebServerVerticle(
     override suspend fun start() {
         val router = Router.router(vertx)
 
+        setupCors(router)
         setupRoutes(router)
 
         try {
@@ -46,6 +48,21 @@ class WebServerVerticle(
         super<CoroutineVerticle>.stop()
     }
 
+    private fun setupCors(router: Router) {
+        val corsHandler = CorsHandler.create()
+            .addOrigin("https://debtor-info.web.app")
+            .allowedMethod(io.vertx.core.http.HttpMethod.GET)
+            .allowedMethod(io.vertx.core.http.HttpMethod.POST)
+            .allowedMethod(io.vertx.core.http.HttpMethod.OPTIONS)
+            .allowedHeader("Access-Control-Request-Method")
+            .allowedHeader("Access-Control-Allow-Origin")
+            .allowedHeader("Access-Control-Allow-Headers")
+            .allowedHeader("Content-Type")
+            .allowCredentials(true)
+            .maxAgeSeconds(3600)
+        router.route().handler(corsHandler)
+    }
+
     private fun setupRoutes(router: Router) {
         router.route()
             .handler(BodyHandler.create())
@@ -53,9 +70,9 @@ class WebServerVerticle(
 
         router.get("/")
             .coroutineHandler(healthCheckController::healthStatus)
-        router.get("/api/v1/financial-variables")
+        router.get("/v1/financial-variables")
             .coroutineHandler(financialVariablesController::getFinancialVariables)
-        router.get("/api/v1/debtors/:identification")
+        router.get("/v1/debtors/:identification")
             .coroutineHandler(debtorsController::getDebtorInfo)
     }
 

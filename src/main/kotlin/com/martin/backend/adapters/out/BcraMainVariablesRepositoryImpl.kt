@@ -20,7 +20,6 @@ class BcraMainVariablesRepositoryImpl(
 
     override suspend fun get(): BcraVariablesResult {
         log.info("Getting main variables")
-        println("Getting main variables")
         val response = client.getAbs(
             BCRA_VARIABLES_API_URL
         )

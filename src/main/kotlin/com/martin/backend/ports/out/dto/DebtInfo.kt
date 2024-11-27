@@ -6,12 +6,9 @@ import java.time.LocalDate
 data class DebtInfo(
     val identification: Long,
     val name: String?,
-    val periods: List<Period>?
+    val period: LocalDate?,
+    val entities: List<DebtEntity>?
 ) {
-    data class Period(
-        val period: LocalDate?,
-        val entities: List<DebtEntity>?
-    )
 
     data class DebtEntity(
         val entity: String?,

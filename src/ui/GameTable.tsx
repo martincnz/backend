@@ -1,11 +1,11 @@
 import { assertNever, type GameId } from "../types";
 import { gameTitle } from "../games/registry";
-import { BastaGame } from "../games/basta/BastaGame";
+import { CinturonGame } from "../games/cinturon/CinturonGame";
 import { DibujoGame } from "../games/dibujo/DibujoGame";
-import { BombaGame } from "../games/bomba/BombaGame";
-import { MenteGame } from "../games/mente/MenteGame";
-import { TrivialGame } from "../games/trivial/TrivialGame";
-import { MentirosoGame } from "../games/mentiroso/MentirosoGame";
+import { TemblorGame } from "../games/temblor/TemblorGame";
+import { PilotoGame } from "../games/piloto/PilotoGame";
+import { TurboGame } from "../games/turbo/TurboGame";
+import { EcoGame } from "../games/eco/EcoGame";
 import type { GameRoom } from "../net/room";
 import type { RoomSnapshot } from "../net/room";
 import { Button } from "./kit";
@@ -29,23 +29,23 @@ export function GameTable({
   const game: GameId = snap.game;
   let body;
   switch (game) {
-    case "basta":
-      body = <BastaGame room={room} snap={snap} asId={asId} />;
+    case "cinturon":
+      body = <CinturonGame room={room} snap={snap} asId={asId} />;
       break;
     case "dibujo":
       body = <DibujoGame room={room} snap={snap} asId={asId} />;
       break;
-    case "bomba":
-      body = <BombaGame room={room} snap={snap} asId={asId} />;
+    case "temblor":
+      body = <TemblorGame room={room} snap={snap} asId={asId} />;
       break;
-    case "mente":
-      body = <MenteGame room={room} snap={snap} asId={asId} />;
+    case "piloto":
+      body = <PilotoGame room={room} snap={snap} asId={asId} />;
       break;
-    case "trivial":
-      body = <TrivialGame room={room} snap={snap} asId={asId} />;
+    case "turbo":
+      body = <TurboGame room={room} snap={snap} asId={asId} />;
       break;
-    case "mentiroso":
-      body = <MentirosoGame room={room} snap={snap} asId={asId} />;
+    case "eco":
+      body = <EcoGame room={room} snap={snap} asId={asId} />;
       break;
     default:
       body = assertNever(game);

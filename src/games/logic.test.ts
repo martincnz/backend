@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { initBasta, reduceBasta, scoreBastaRound, type BastaAnswers } from "./basta/logic";
-import { initMente, lowestRemaining, reduceMente } from "./mente/logic";
-import { initMentiroso, reduceMentiroso } from "./mentiroso/logic";
-import { initBomba, reduceBomba } from "./bomba/logic";
-import { initTrivial, reduceTrivial } from "./trivial/logic";
-import { QUESTIONS } from "./trivial/data";
+import { initCinturon, reduceCinturon } from "./cinturon/logic";
+import { initTemblor, reduceTemblor } from "./temblor/logic";
+import { initPiloto, reducePiloto } from "./piloto/logic";
+import { initTurbo, reduceTurbo } from "./turbo/logic";
+import { initEco, reduceEco } from "./eco/logic";
+import { FALSE_START } from "./shared";
 import { injectLanCandidates } from "../net/ice";
 import { packSignal, unpackSignal } from "../net/compress";
 import type { Player } from "../types";
@@ -15,124 +15,87 @@ const players: Player[] = [
   { id: "c", name: "Lucho", seat: "17C" },
 ];
 
-describe("basta scoring", () => {
-  it("gives 10 to unique words and 5 to shared ones", () => {
-    const answers: Record<string, BastaAnswers> = {
-      a: {
-        nombre: "Ana",
-        apellido: "Alvarez",
-        ciudad: "Asunción",
-        animal: "Avestruz",
-        color: "Azul",
-        cosa: "Anillo",
-      },
-      b: {
-        nombre: "Ana",
-        apellido: "Borges",
-        ciudad: "Asunción",
-        animal: "Abeja",
-        color: "Amarillo",
-        cosa: "Arpa",
-      },
-      c: {
-        nombre: "",
-        apellido: "",
-        ciudad: "",
-        animal: "",
-        color: "",
-        cosa: "",
-      },
-    };
-    const points = scoreBastaRound(answers, "A", ["a", "b", "c"]);
-    expect(points.c).toBe(0);
-    expect(points.a).toBe(50);
-    expect(points.b).toBe(40);
+describe("cinturón", () => {
+  it("marks a tap before GO as a false start", () => {
+    let state = initCinturon(1, players, true);
+    state = reduceCinturon(state, { type: "ready" }, "a", players);
+    expect(state.phase).toBe("wait");
+    state = reduceCinturon(state, { type: "tap", at: 10 }, "a", players);
+    expect(state.times.a).toBe(FALSE_START);
+    expect(state.phase).toBe("result");
   });
 
-  it("plays a round to reveal", () => {
-    let state = initBasta(1, players);
-    state = reduceBasta(state, { type: "begin" }, "a", players);
-    expect(state.phase).toBe("write");
-    expect(state.letter).toMatch(/^[A-Z]$/);
-    const empty = {
-      nombre: "ada",
-      apellido: "ada",
-      ciudad: "ada",
-      animal: "ada",
-      color: "ada",
-      cosa: "ada",
-    };
-    state = reduceBasta(state, { type: "submit", answers: empty }, "a", players);
-    state = reduceBasta(state, { type: "basta", answers: empty }, "b", players);
-    expect(state.phase === "reveal" || state.phase === "match").toBe(true);
-  });
-});
-
-describe("la mente", () => {
-  it("loses a life when someone plays before a lower card", () => {
-    let state = initMente(7, players);
-    const expected = lowestRemaining(state.hands);
-    const offender = Object.entries(state.hands).find(([, cards]) => cards[0] !== expected);
-    if (!offender) throw new Error("all lowest cards are tied; unlucky seed");
-    const before = state.lives;
-    state = reduceMente(state, { type: "play" }, offender[0], players);
-    expect(state.lives).toBe(before - 1);
-  });
-});
-
-describe("mentiroso", () => {
-  it("gives the pile to the liar when called out", () => {
-    let state = initMentiroso(3, players);
-    const hand = state.hands.a ?? [];
-    const card = hand[0];
-    if (!card) throw new Error("no card");
-    const lieRank = card.rank === "A" ? "K" : "A";
-    state = reduceMentiroso(
-      state,
-      { type: "play", cardIds: [card.id], rank: lieRank },
-      "a",
-      players,
-    );
-    expect(state.phase).toBe("call");
-    state = reduceMentiroso(state, { type: "lie" }, "b", players);
-    expect(state.lastTruth).toBe(false);
-    expect(state.hands.a?.length).toBeGreaterThan(hand.length - 1);
-  });
-});
-
-describe("bomba", () => {
-  it("accepts a word with the syllable and rejects duplicates", () => {
-    let state = initBomba(4, players);
-    const word = `${state.syllable}casa`;
-    state = reduceBomba(state, { type: "word", text: word }, "a", players);
-    expect(state.used.length).toBe(1);
-    expect(state.currentId).toBe("b");
-    const again = reduceBomba(state, { type: "word", text: word }, "b", players);
-    expect(again.used.length).toBe(1);
-  });
-
-  it("timeout only applies to the matching turn", () => {
-    const state = initBomba(4, players);
-    const ignored = reduceBomba(state, { type: "timeout", turn: 99 }, "a", players);
-    expect(ignored.lives.a).toBe(2);
-    const hit = reduceBomba(state, { type: "timeout", turn: 0 }, "a", players);
-    expect(hit.lives.a).toBe(1);
-  });
-});
-
-describe("trivial", () => {
-  it("scores only after everyone answers", () => {
-    let state = initTrivial(9, players);
-    const q = QUESTIONS[state.order[0] ?? 0];
-    if (!q) throw new Error("no q");
-    state = reduceTrivial(state, { type: "answer", choice: q.ok }, "a", players);
-    expect(state.phase).toBe("ask");
-    state = reduceTrivial(state, { type: "answer", choice: q.ok }, "b", players);
-    state = reduceTrivial(state, { type: "answer", choice: (q.ok + 1) % 4 }, "c", players);
-    expect(state.phase).toBe("reveal");
+  it("records host-clock reaction and awards the fastest", () => {
+    let state = initCinturon(2, players, false);
+    state = reduceCinturon(state, { type: "ready" }, "a", players);
+    state = reduceCinturon(state, { type: "ready" }, "b", players);
+    state = reduceCinturon(state, { type: "ready" }, "c", players);
+    state = reduceCinturon(state, { type: "go", at: 1000 }, "a", players);
+    state = reduceCinturon(state, { type: "tap", at: 1180 }, "b", players);
+    state = reduceCinturon(state, { type: "tap", at: 1110 }, "a", players);
+    state = reduceCinturon(state, { type: "tap", at: 1400 }, "c", players);
+    expect(state.times.a).toBe(110);
     expect(state.scores.a).toBe(1);
-    expect(state.scores.b).toBe(1);
+    expect(state.scores.b).toBe(0);
     expect(state.scores.c).toBe(0);
+  });
+});
+
+describe("temblor", () => {
+  it("keeps the highest energy and awards the shakiest phone", () => {
+    let state = initTemblor(3, players, false);
+    state = reduceTemblor(state, { type: "start", at: 0 }, "a", players);
+    state = reduceTemblor(state, { type: "tick", energy: 12 }, "a", players);
+    state = reduceTemblor(state, { type: "tick", energy: 40 }, "b", players);
+    state = reduceTemblor(state, { type: "done", energy: 18 }, "a", players);
+    state = reduceTemblor(state, { type: "done", energy: 40 }, "b", players);
+    state = reduceTemblor(state, { type: "done", energy: 9 }, "c", players);
+    expect(state.energy.b).toBe(40);
+    expect(state.scores.b).toBe(1);
+  });
+});
+
+describe("piloto", () => {
+  it("awards the longest time in the green corridor", () => {
+    let state = initPiloto(4, players, false);
+    state = reducePiloto(state, { type: "start", at: 0 }, "a", players);
+    state = reducePiloto(state, { type: "done", greenMs: 1200 }, "a", players);
+    state = reducePiloto(state, { type: "done", greenMs: 5100 }, "c", players);
+    state = reducePiloto(state, { type: "done", greenMs: 3000 }, "b", players);
+    expect(state.scores.c).toBe(1);
+    expect(state.greenMs.c).toBe(5100);
+  });
+});
+
+describe("turbo", () => {
+  it("counts taps and awards the highest score after timeout", () => {
+    let state = initTurbo(5, players, true);
+    state = reduceTurbo(state, { type: "start", at: 0 }, "a", players);
+    state = reduceTurbo(state, { type: "tap" }, "a", players);
+    state = reduceTurbo(state, { type: "tap" }, "a", players);
+    state = reduceTurbo(state, { type: "tap" }, "a", players);
+    expect(state.taps.a).toBe(3);
+    state = reduceTurbo(state, { type: "timeout" }, "a", players);
+    expect(state.phase).toBe("result");
+    state = reduceTurbo(state, { type: "next" }, "a", players);
+    expect(state.currentId).toBe("b");
+  });
+});
+
+describe("eco", () => {
+  it("rejects a wrong pad and accepts a matching sequence", () => {
+    let state = initEco(6, players, true);
+    const first = state.sequence[0];
+    if (first === undefined) throw new Error("empty sequence");
+    const wrong = (first + 1) % 4;
+    const failed = reduceEco(state, { type: "press", pad: wrong }, "a", players);
+    expect(failed.progress.a?.dead).toBe(true);
+    expect(failed.progress.a?.score).toBe(0);
+
+    let ok = reduceEco(state, { type: "press", pad: first }, "a", players);
+    expect(ok.progress.a?.dead).toBe(false);
+    expect(ok.progress.a?.score).toBe(1);
+    expect(ok.progress.a?.level).toBe(2);
   });
 });
 

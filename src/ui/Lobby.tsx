@@ -7,14 +7,16 @@ import { Panel, SeatMap } from "./kit";
 export function Lobby({
   room,
   snap,
+  solo = false,
 }: {
   room: GameRoom;
   snap: RoomSnapshot;
+  solo?: boolean;
 }) {
   const host = snap.role === "host";
   const start = (id: GameId) => {
     const seed = Date.now();
-    const initial = initGame(id, seed, room.players);
+    const initial = initGame(id, seed, room.players, { solo });
     room.startGame(id, seed, initial);
   };
   return (
@@ -24,7 +26,9 @@ export function Lobby({
         <h1>Cabina</h1>
         <p className="lede">
           {host
-            ? "Elegí un juego cuando estén los tres. Podés arrancar de a dos si el de la ventanilla se durmió."
+            ? solo
+              ? "El teléfono mide toques, tiempo e inclinación. No hay que confiar: el celu es el juez."
+              : "Elegí un juego cuando estén los tres. En tres celulares todos juegan a la vez."
             : "Esperá a que el asiento ventana elija el juego."}
         </p>
       </div>

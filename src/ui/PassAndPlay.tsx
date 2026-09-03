@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { GameRoom } from "../net/room";
 import { LocalStar } from "../net/local";
-import { reduceGame } from "../games/registry";
+import { needsPassCover, reduceGame, turnPlayerId } from "../games/registry";
 import { Button, Field } from "./kit";
 import { Lobby } from "./Lobby";
 import { GameTable } from "./GameTable";
@@ -23,8 +23,8 @@ export function PassAndPlay({ onBack }: { onBack: () => void }) {
           <div className="eyebrow">un solo celular</div>
           <h1>Pasar el celular</h1>
           <p className="lede">
-            Tres nombres, un teléfono. Antes de cada turno ocultás la pantalla y se lo das al
-            siguiente. No hace falta red ni otro celular.
+            Tres nombres, un teléfono. El celu cuenta toques, mide el temblor y toma el tiempo. No
+            hay que mirar para otro lado: el aparato es el juez.
           </p>
         </div>
         {names.map((n, i) => (
@@ -77,6 +77,13 @@ function PassPlayShell({
 }) {
   const snap = useRoom(room);
   const current = asId ?? room.self.id;
+  const cover = snap.game ? needsPassCover(snap.game) : false;
+
+  useEffect(() => {
+    if (!snap.game || snap.state === null) return;
+    const turn = turnPlayerId(snap.game, snap.state);
+    if (turn) setAsId(turn);
+  }, [snap.game, snap.state, setAsId]);
 
   if (hidden) {
     return (
@@ -104,25 +111,31 @@ function PassPlayShell({
   return (
     <>
       <div className="app" style={{ paddingBottom: 0, minHeight: 0 }}>
-        <div className="row">
-          {snap.players.map((p) => (
-            <Button
-              key={p.id}
-              variant={p.id === current ? "amber" : "secondary"}
-              onClick={() => setAsId(p.id)}
-            >
-              {p.name}
+        {cover ? (
+          <>
+            <div className="row">
+              {snap.players.map((p) => (
+                <Button
+                  key={p.id}
+                  variant={p.id === current ? "amber" : "secondary"}
+                  onClick={() => setAsId(p.id)}
+                >
+                  {p.name}
+                </Button>
+              ))}
+            </div>
+            <Button variant="coral" onClick={() => setHidden(true)}>
+              Ocultar y pasar
             </Button>
-          ))}
-        </div>
-        <Button variant="coral" onClick={() => setHidden(true)}>
-          Ocultar y pasar
-        </Button>
+          </>
+        ) : (
+          <p className="lede">El teléfono lleva el turno y el puntaje. Pasalo cuando te lo pida.</p>
+        )}
       </div>
       {snap.game ? (
         <GameTable room={room} snap={snap} asId={current} />
       ) : (
-        <Lobby room={room} snap={snap} />
+        <Lobby room={room} snap={snap} solo />
       )}
     </>
   );

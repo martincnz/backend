@@ -40,7 +40,7 @@ const ENTRIES: Entry[] = [
   { word: "Sirena", clues: ["Ficción", "Mar", "Canta"] },
   { word: "Dragón", clues: ["Ficción", "Fuego", "Mito"] },
   { word: "Taza", clues: ["Objeto", "Hogar", "Bebida"] },
-  { word: "Rehloj", clues: ["Objeto", "Tiempo", "Tic-tac"] },
+  { word: "Reloj", clues: ["Objeto", "Tiempo", "Tic-tac"] },
 ];
 
 function pickEntry(seed: number, round: number): Entry {

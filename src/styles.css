@@ -558,6 +558,20 @@ h1 {
   color: var(--mint);
 }
 
+.tetris-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tetris-controls .row {
+  gap: 10px;
+}
+
+canvas {
+  touch-action: none;
+}
+
 .bad {
   color: var(--coral);
 }

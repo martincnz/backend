@@ -4,12 +4,12 @@ import { HostSetup } from "./ui/HostSetup";
 import { JoinSetup } from "./ui/JoinSetup";
 import { Lobby } from "./ui/Lobby";
 import { GameTable } from "./ui/GameTable";
-import { PassAndPlay } from "./ui/PassAndPlay";
 import { GameRoom } from "./net/room";
 import { reduceGame } from "./games/registry";
 import { useRoom, useWakeLock } from "./ui/hooks";
+import { SoloTetris } from "./ui/SoloTetris";
 
-type Screen = "home" | "host" | "join" | "pass" | "play";
+type Screen = "home" | "host" | "join" | "solo" | "play";
 
 type InstallEvent = Event & { prompt: () => Promise<void> };
 
@@ -44,7 +44,7 @@ export function App() {
 
   if (screen === "host") return <HostSetup onBack={() => setScreen("home")} onReady={ready} />;
   if (screen === "join") return <JoinSetup onBack={() => setScreen("home")} onReady={ready} />;
-  if (screen === "pass") return <PassAndPlay onBack={() => setScreen("home")} />;
+  if (screen === "solo") return <SoloTetris onBack={() => setScreen("home")} />;
   if (screen === "play" && room) return <Play room={room} />;
 
   return (

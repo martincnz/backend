@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "./kit";
 
-type Screen = "home" | "host" | "join" | "pass";
+type Screen = "home" | "host" | "join" | "solo";
 
 export function Home({
   onGo,
@@ -22,7 +22,7 @@ export function Home({
       if (navigator.share) {
         await navigator.share({
           title: "Modo Avión",
-          text: "Juegos offline para el avión. Dibujos y verificación automática en el teléfono.",
+          text: "Tetris online para el avión: 1 a 3 celulares con QR + hotspot.",
           url,
         });
         setShareMsg("Mandalo a los otros dos celulares.");
@@ -46,8 +46,8 @@ export function Home({
         </p>
       </div>
       <div className="stack">
-        <Button onClick={() => onGo("pass")}>Jugar en este celular</Button>
-        <p className="lede">Los tres se van pasando el teléfono. El motor valida.</p>
+        <Button onClick={() => onGo("solo")}>Jugar en este celular</Button>
+        <p className="lede">Modo 1 jugador. Para 2-3 celulares: Abrir cabina/Subirme.</p>
       </div>
       <div className="panel stack">
         <b>¿Tienen tres celulares?</b>

@@ -27,7 +27,7 @@ export function Lobby({
         <p className="lede">
           {host
             ? solo
-              ? "El teléfono mide toques, tiempo e inclinación. No hay que confiar: el celu es el juez."
+              ? "El teléfono valida automáticamente con dibujos y opciones. No hace falta “confiar”."
               : "Elegí un juego cuando estén los tres. En tres celulares todos juegan a la vez."
             : "Esperá a que el asiento ventana elija el juego."}
         </p>

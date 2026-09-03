@@ -1,7 +1,16 @@
 export const SEATS = ["17A", "17B", "17C"] as const;
 export type Seat = (typeof SEATS)[number];
 
-export type GameId = "cinturon" | "dibujo" | "temblor" | "piloto" | "turbo" | "eco";
+export type GameId =
+  | "cinturon"
+  | "dibujo" // Pinturillo (histórico)
+  | "temblor"
+  | "piloto"
+  | "turbo"
+  | "eco"
+  | "garticphone"
+  | "taboo"
+  | "adivina";
 
 export type Player = {
   id: string;

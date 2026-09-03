@@ -23,8 +23,7 @@ export function PassAndPlay({ onBack }: { onBack: () => void }) {
           <div className="eyebrow">un solo celular</div>
           <h1>Pasar el celular</h1>
           <p className="lede">
-            Tres nombres, un teléfono. El celu cuenta toques, mide el temblor y toma el tiempo. No
-            hay que mirar para otro lado: el aparato es el juez.
+            Tres nombres, un teléfono. El motor valida automáticamente los juegos en el celular.
           </p>
         </div>
         {names.map((n, i) => (

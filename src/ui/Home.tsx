@@ -22,7 +22,7 @@ export function Home({
       if (navigator.share) {
         await navigator.share({
           title: "Modo Avión",
-          text: "Juegos con el celu de juez. Toques, sensores y tiempo.",
+          text: "Juegos offline para el avión. Dibujos y verificación automática en el teléfono.",
           url,
         });
         setShareMsg("Mandalo a los otros dos celulares.");
@@ -41,13 +41,13 @@ export function Home({
         <div className="eyebrow">solo celular</div>
         <h1>Modo Avión</h1>
         <p className="lede">
-          Todo corre en el teléfono: acelerómetro, giroscopio, toques y el reloj. El celu es el
-          juez, no hay que creerse nada.
+          Todo corre en el teléfono: dibujos y elecciones con verificación automática. No hay que
+          “confiar” en el otro.
         </p>
       </div>
       <div className="stack">
         <Button onClick={() => onGo("pass")}>Jugar en este celular</Button>
-        <p className="lede">Los tres se van pasando el teléfono. El aparato mide, ustedes juegan.</p>
+        <p className="lede">Los tres se van pasando el teléfono. El motor valida.</p>
       </div>
       <div className="panel stack">
         <b>¿Tienen tres celulares?</b>

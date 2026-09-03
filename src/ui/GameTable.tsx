@@ -2,6 +2,9 @@ import { assertNever, type GameId } from "../types";
 import { gameTitle } from "../games/registry";
 import { CinturonGame } from "../games/cinturon/CinturonGame";
 import { DibujoGame } from "../games/dibujo/DibujoGame";
+import { GarticPhoneGame } from "../games/garticphone/GarticPhoneGame";
+import { TabooGame } from "../games/taboo/TabooGame";
+import { AdinvinaGame } from "../games/adivina/AdinvinaGame";
 import { TemblorGame } from "../games/temblor/TemblorGame";
 import { PilotoGame } from "../games/piloto/PilotoGame";
 import { TurboGame } from "../games/turbo/TurboGame";
@@ -34,6 +37,15 @@ export function GameTable({
       break;
     case "dibujo":
       body = <DibujoGame room={room} snap={snap} asId={asId} />;
+      break;
+    case "garticphone":
+      body = <GarticPhoneGame room={room} snap={snap} asId={asId} />;
+      break;
+    case "taboo":
+      body = <TabooGame room={room} snap={snap} asId={asId} />;
+      break;
+    case "adivina":
+      body = <AdinvinaGame room={room} snap={snap} asId={asId} />;
       break;
     case "temblor":
       body = <TemblorGame room={room} snap={snap} asId={asId} />;

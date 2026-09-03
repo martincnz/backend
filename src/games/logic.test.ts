@@ -4,6 +4,9 @@ import { initTemblor, reduceTemblor } from "./temblor/logic";
 import { initPiloto, reducePiloto } from "./piloto/logic";
 import { initTurbo, reduceTurbo } from "./turbo/logic";
 import { initEco, reduceEco } from "./eco/logic";
+import { initGarticphone, reduceGarticphone } from "./garticphone/logic";
+import { initTaboo, reduceTaboo } from "./taboo/logic";
+import { initAdinvina, reduceAdinvina } from "./adivina/logic";
 import { FALSE_START } from "./shared";
 import { injectLanCandidates } from "../net/ice";
 import { packSignal, unpackSignal } from "../net/compress";
@@ -116,5 +119,123 @@ describe("ice + compress", () => {
     const packed = await packSignal(payload);
     const back = await unpackSignal<typeof payload>(packed);
     expect(back.sdp).toBe(payload.sdp);
+  });
+});
+
+describe("garticphone", () => {
+  it("awards fastest correct guesser", () => {
+    let state = initGarticphone(1, players);
+    expect(state.phase).toBe("draw");
+    state = reduceGarticphone(state, { type: "timeout", at: 1 }, "a", players);
+    state = reduceGarticphone(state, { type: "timeout", at: 2 }, "a", players);
+    state = reduceGarticphone(state, { type: "timeout", at: 3 }, "a", players);
+    expect(state.phase).toBe("guess");
+
+    const wrong = state.options.find((o) => o !== state.secretWord);
+    if (!wrong) throw new Error("missing wrong option");
+
+    state = reduceGarticphone(
+      state,
+      { type: "guess", choice: state.secretWord, at: 10 },
+      "a",
+      players,
+    );
+    state = reduceGarticphone(
+      state,
+      { type: "guess", choice: state.secretWord, at: 20 },
+      "b",
+      players,
+    );
+    state = reduceGarticphone(
+      state,
+      { type: "guess", choice: wrong, at: 30 },
+      "c",
+      players,
+    );
+
+    expect(state.phase).toBe("result");
+    expect(state.scores.a).toBe(3);
+    expect(state.scores.b).toBe(2);
+    expect(state.scores.c).toBe(0);
+  });
+});
+
+describe("taboo", () => {
+  it("awards correct guessers and gives describer bonus", () => {
+    let state = initTaboo(2, players);
+    expect(state.phase).toBe("clues");
+    const allowed = state.clueBank.filter((w) => !state.forbiddenWords.includes(w));
+    const c1 = allowed[0];
+    const c2 = allowed[1];
+    const c3 = allowed[2];
+    if (!c1 || !c2 || !c3) throw new Error("not enough allowed clue words");
+
+    state = reduceTaboo(state, { type: "clueTap", word: c1 }, state.describerId, players);
+    state = reduceTaboo(state, { type: "clueTap", word: c2 }, state.describerId, players);
+    state = reduceTaboo(state, { type: "clueTap", word: c3 }, state.describerId, players);
+    expect(state.phase).toBe("guess");
+
+    state = reduceTaboo(
+      state,
+      { type: "guess", choice: state.targetWord, at: 5 },
+      "a",
+      players,
+    );
+    state = reduceTaboo(
+      state,
+      { type: "guess", choice: state.targetWord, at: 15 },
+      "b",
+      players,
+    );
+
+    const wrong = state.options.find((o) => o !== state.targetWord);
+    if (!wrong) throw new Error("missing wrong option");
+
+    state = reduceTaboo(
+      state,
+      { type: "guess", choice: wrong, at: 25 },
+      "c",
+      players,
+    );
+
+    expect(state.phase).toBe("result");
+    // describerId is players[0] in initTaboo()
+    expect(state.scores.a).toBe(4);
+    expect(state.scores.b).toBe(2);
+    expect(state.scores.c).toBe(0);
+  });
+});
+
+describe("adivina", () => {
+  it("awards fastest correct guesser", () => {
+    let state = initAdinvina(3, players);
+    expect(state.phase).toBe("ask");
+
+    const wrong = state.options.find((o) => o !== state.entryWord);
+    if (!wrong) throw new Error("missing wrong option");
+
+    state = reduceAdinvina(
+      state,
+      { type: "answer", choice: state.entryWord, at: 10 },
+      "a",
+      players,
+    );
+    state = reduceAdinvina(
+      state,
+      { type: "answer", choice: state.entryWord, at: 30 },
+      "b",
+      players,
+    );
+    state = reduceAdinvina(
+      state,
+      { type: "answer", choice: wrong, at: 20 },
+      "c",
+      players,
+    );
+
+    expect(state.phase).toBe("result");
+    expect(state.scores.a).toBe(3);
+    expect(state.scores.b).toBe(2);
+    expect(state.scores.c).toBe(0);
   });
 });

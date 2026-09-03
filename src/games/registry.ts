@@ -8,6 +8,12 @@ import {
 } from "./cinturon/logic";
 import { initDibujo, reduceDibujo, type DibujoAction, type DibujoState } from "./dibujo/logic";
 import {
+  initGarticphone,
+  reduceGarticphone,
+  type GarticPhoneAction,
+  type GarticPhoneState,
+} from "./garticphone/logic";
+import {
   initTemblor,
   reduceTemblor,
   type TemblorAction,
@@ -16,15 +22,20 @@ import {
 import { initPiloto, reducePiloto, type PilotoAction, type PilotoState } from "./piloto/logic";
 import { initTurbo, reduceTurbo, type TurboAction, type TurboState } from "./turbo/logic";
 import { initEco, reduceEco, type EcoAction, type EcoState } from "./eco/logic";
+import { initTaboo, reduceTaboo, type TabooAction, type TabooState } from "./taboo/logic";
+import { initAdinvina, reduceAdinvina, type AdinvinaAction, type AdinvinaState } from "./adivina/logic";
 import type { GameOpts } from "./shared";
 
 export type AnyGameState =
   | CinturonState
   | DibujoState
+  | GarticPhoneState
   | TemblorState
   | PilotoState
   | TurboState
-  | EcoState;
+  | EcoState
+  | TabooState
+  | AdinvinaState;
 
 export const GAMES: Array<{
   id: GameId;
@@ -33,40 +44,28 @@ export const GAMES: Array<{
   tag: string;
 }> = [
   {
-    id: "cinturon",
-    title: "Cinturón",
-    blurb: "Esperá. Cuando el celu dice YA, tocá. Si te apurás, falta. El reloj decide.",
-    tag: "reacción",
-  },
-  {
     id: "dibujo",
-    title: "Ventanilla",
-    blurb: "Uno dibuja, los otros adivinan. El único con lápiz.",
-    tag: "lápiz",
+    title: "Pinturillo",
+    blurb: "Uno dibuja y los otros adivinan la palabra (verificación automática).",
+    tag: "dibujo",
   },
   {
-    id: "temblor",
-    title: "Temblor",
-    blurb: "Ocho segundos. Sacudí el teléfono. El acelerómetro suma, no tu palabra.",
-    tag: "sensor",
+    id: "garticphone",
+    title: "Gartic Phone",
+    blurb: "Teléfono descompuesto con dibujos. Dibujás en cadena y el motor valida con opciones.",
+    tag: "cadena",
   },
   {
-    id: "piloto",
-    title: "Piloto",
-    blurb: "Incliná el celular y mantené el avión en verde. El giroscopio es el juez.",
-    tag: "sensor",
+    id: "taboo",
+    title: "Taboo",
+    blurb: "Elegí 3 claves y no toques palabras prohibidas. La verificación es automática.",
+    tag: "pistas",
   },
   {
-    id: "turbo",
-    title: "Turbo",
-    blurb: "Machacá la pantalla. El teléfono cuenta cada toque.",
-    tag: "toques",
-  },
-  {
-    id: "eco",
-    title: "Eco",
-    blurb: "El celu muestra y vibra una secuencia. Repetila. Si te equivocás, cortó.",
-    tag: "memoria",
+    id: "adivina",
+    title: "Adivina",
+    blurb: "Quiz de famoso/objeto/categoría con opciones. El motor sabe la respuesta.",
+    tag: "quiz",
   },
 ];
 
@@ -75,7 +74,13 @@ export function gameTitle(id: GameId): string {
     case "cinturon":
       return "Cinturón";
     case "dibujo":
-      return "Ventanilla";
+      return "Pinturillo";
+    case "garticphone":
+      return "Gartic Phone";
+    case "taboo":
+      return "Taboo";
+    case "adivina":
+      return "Adivina";
     case "temblor":
       return "Temblor";
     case "piloto":
@@ -101,6 +106,8 @@ export function initGame(
       return initCinturon(seed, players, solo);
     case "dibujo":
       return initDibujo(seed, players);
+    case "garticphone":
+      return initGarticphone(seed, players);
     case "temblor":
       return initTemblor(seed, players, solo);
     case "piloto":
@@ -109,6 +116,10 @@ export function initGame(
       return initTurbo(seed, players, solo);
     case "eco":
       return initEco(seed, players, solo);
+    case "taboo":
+      return initTaboo(seed, players);
+    case "adivina":
+      return initAdinvina(seed, players);
     default:
       return assertNever(id);
   }
@@ -129,6 +140,13 @@ export function reduceGame(
       return reduceCinturon(state as CinturonState, action as CinturonAction, from, players);
     case "dibujo":
       return reduceDibujo(state as DibujoState, action as DibujoAction, from, players);
+    case "garticphone":
+      return reduceGarticphone(
+        state as GarticPhoneState,
+        action as GarticPhoneAction,
+        from,
+        players,
+      );
     case "temblor":
       return reduceTemblor(state as TemblorState, action as TemblorAction, from, players);
     case "piloto":
@@ -137,6 +155,10 @@ export function reduceGame(
       return reduceTurbo(state as TurboState, action as TurboAction, from, players);
     case "eco":
       return reduceEco(state as EcoState, action as EcoAction, from, players);
+    case "taboo":
+      return reduceTaboo(state as TabooState, action as TabooAction, from, players);
+    case "adivina":
+      return reduceAdinvina(state as AdinvinaState, action as AdinvinaAction, from, players);
     default:
       return assertNever(id);
   }
@@ -147,6 +169,10 @@ export function turnPlayerId(id: GameId, state: unknown): string | null {
   switch (id) {
     case "dibujo":
       return (state as DibujoState).drawerId;
+    case "garticphone": {
+      const s = state as GarticPhoneState;
+      return s.phase === "draw" ? s.drawerId : null;
+    }
     case "cinturon": {
       const current = state as CinturonState;
       return current.solo ? current.currentId : null;
@@ -167,6 +193,12 @@ export function turnPlayerId(id: GameId, state: unknown): string | null {
       const current = state as EcoState;
       return current.solo ? current.currentId : null;
     }
+    case "taboo": {
+      const s = state as TabooState;
+      return s.phase === "clues" ? s.describerId : null;
+    }
+    case "adivina":
+      return null;
     default:
       return assertNever(id);
   }
@@ -176,6 +208,12 @@ export function needsPassCover(id: GameId): boolean {
   switch (id) {
     case "dibujo":
       return true;
+    case "garticphone":
+      return true;
+    case "taboo":
+      return true;
+    case "adivina":
+      return false;
     case "cinturon":
     case "temblor":
     case "piloto":

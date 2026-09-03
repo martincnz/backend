@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useRef, type PointerEvent } from "react";
 import type { DibujoState, Point, Stroke } from "./logic";
 import type { GameRoom } from "../../net/room";
 import type { RoomSnapshot } from "../../net/room";
@@ -15,7 +15,6 @@ export function DibujoGame({
 }) {
   const state = snap.state as DibujoState;
   const drawer = asId === state.drawerId;
-  const [guess, setGuess] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const strokeRef = useRef<Stroke | null>(null);
   const lastSend = useRef(0);
@@ -125,21 +124,19 @@ export function DibujoGame({
         </div>
       ) : null}
       {state.phase === "draw" && !drawer ? (
-        <div className="row">
-          <input
-            value={guess}
-            onChange={(e) => setGuess(e.target.value)}
-            placeholder="¿qué es?"
-          />
-          <Button
-            onClick={() => {
-              if (!guess.trim()) return;
-              room.sendAction({ type: "guess", text: guess.trim() }, asId);
-              setGuess("");
-            }}
-          >
-            Chutar
-          </Button>
+        <div className="stack">
+          <p className="lede">Elegí la palabra:</p>
+          <div className="row">
+            {state.options.map((opt) => (
+              <Button
+                key={opt}
+                variant="secondary"
+                onClick={() => room.sendAction({ type: "guess", text: opt }, asId)}
+              >
+                {opt}
+              </Button>
+            ))}
+          </div>
         </div>
       ) : null}
       <div className="guess-list">

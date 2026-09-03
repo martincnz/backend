@@ -24,7 +24,7 @@ export function PassAndPlay({ onBack }: { onBack: () => void }) {
           <h1>Pasar el celular</h1>
           <p className="lede">
             Tres nombres, un teléfono. Antes de cada turno ocultás la pantalla y se lo das al
-            siguiente.
+            siguiente. No hace falta red ni otro celular.
           </p>
         </div>
         {names.map((n, i) => (

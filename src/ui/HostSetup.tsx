@@ -83,8 +83,8 @@ export function HostSetup({
         <div className="eyebrow">asiento 17A</div>
         <h1>Abrir cabina</h1>
         <p className="lede">
-          Prendé el hotspot. Los otros se conectan a tu Wi‑Fi y después escanean. Vos sos el
-          anfitrión.
+          Sin computadora. Prendé el hotspot de este celular, que los otros se conecten a tu Wi‑Fi
+          (sin internet) y después escanean el QR.
         </p>
       </div>
       <Field label="Tu nombre">

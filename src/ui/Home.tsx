@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "./kit";
 
 type Screen = "home" | "host" | "join" | "pass";
@@ -13,53 +14,70 @@ export function Home({
   onInstall: () => void;
   iosHint: boolean;
 }) {
+  const [shareMsg, setShareMsg] = useState<string | null>(null);
+
+  const share = async () => {
+    const url = window.location.href.split("?")[0];
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "Modo Avión",
+          text: "Juegos para el avión, todo en el celular.",
+          url,
+        });
+        setShareMsg("Mandalo a los otros dos celulares.");
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      setShareMsg("Link copiado. Pegalo en un mensaje.");
+    } catch {
+      setShareMsg(url);
+    }
+  };
+
   return (
     <div className="app">
       <div className="brand">
-        <div className="eyebrow">vuelo nocturno</div>
+        <div className="eyebrow">solo celular</div>
         <h1>Modo Avión</h1>
         <p className="lede">
-          Tres asientos. Cero internet. Una cabina de jueguitos para el rato en el aire.
+          Todo corre en el teléfono. No hace falta notebook, ni tele, ni internet una vez que la
+          abriste.
         </p>
       </div>
       <div className="stack">
-        <Button onClick={() => onGo("host")}>Abrir cabina</Button>
-        <Button variant="mint" onClick={() => onGo("join")}>
-          Subirme
+        <Button onClick={() => onGo("pass")}>Jugar en este celular</Button>
+        <p className="lede">Los tres se van pasando el teléfono. Listo para despegar.</p>
+      </div>
+      <div className="panel stack">
+        <b>¿Tienen tres celulares?</b>
+        <p className="lede">
+          Mandales esta misma página. En el avión, uno prende el hotspot y los otros se conectan a
+          ese Wi‑Fi. Después escanean el QR. Nada de Bluetooth, nada de PC.
+        </p>
+        <Button variant="amber" onClick={() => void share()}>
+          Mandar esta página
         </Button>
-        <Button variant="secondary" onClick={() => onGo("pass")}>
-          Pasar el celular
-        </Button>
+        {shareMsg ? <p className="ok">{shareMsg}</p> : null}
+        <div className="row">
+          <Button variant="secondary" onClick={() => onGo("host")}>
+            Abrir cabina
+          </Button>
+          <Button variant="mint" onClick={() => onGo("join")}>
+            Subirme
+          </Button>
+        </div>
       </div>
       {canInstall ? (
         <Button variant="amber" onClick={onInstall}>
-          Instalar en el celular
+          Dejarla instalada
         </Button>
       ) : null}
       {iosHint ? (
         <p className="lede">
-          En iPhone: Compartir → <b>Agregar a inicio</b>. Hacelo antes de despegar.
+          En iPhone: Compartir → <b>Agregar a inicio</b>. Hacelo con Wi‑Fi, después vuela sola.
         </p>
       ) : null}
-      <div className="panel help">
-        <details>
-          <summary>¿Cómo nos conectamos en el avión?</summary>
-          <p>
-            Los navegadores no pueden armar una red Bluetooth entre tres celulares. El truco que sí
-            funciona sin internet:
-          </p>
-          <p>
-            1. Un celular prende el <b>hotspot / punto de acceso</b> (sigue andando en modo avión).
-            Ese celular es el que abre la cabina.
-          </p>
-          <p>2. Los otros dos se conectan a ese Wi‑Fi. No hace falta que haya internet.</p>
-          <p>3. Escanean el QR para emparejarse. Listo: los juegos viajan por esa red local.</p>
-          <p>
-            Instalá esta app (o abrila una vez con Wi‑Fi) <b>antes del vuelo</b> para que quede
-            cacheada offline.
-          </p>
-        </details>
-      </div>
     </div>
   );
 }

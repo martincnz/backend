@@ -54,7 +54,8 @@ export function JoinSetup({
         <div className="eyebrow">pasillo</div>
         <h1>Subirme</h1>
         <p className="lede">
-          Conectate al hotspot del asiento ventana y escaneá el QR de la cabina.
+          Sin computadora. Conectate al hotspot del otro celular (el que abrió la cabina) y
+          escaneá su QR.
         </p>
       </div>
       <Field label="Tu nombre">
